@@ -1,16 +1,19 @@
 <?php
 /*
- * 数据库链接脚本
+ * 系统配置
  *
- * 功能说明：
+ * 根据实际情况进行修改：
  * 	包含本文件后，会自动联接数据库
  */
+
+/* 数据库服务器、用户名、密码、数据库名 */
 $dbhost = "localhost";
 $dbuser = "username";
 $dbpass = "passwd";
 global $dbname;
 $dbname = "dbname";
 
+/* 配置修改到此结束 */
 mysql_connect($dbhost, $dbuser, $dbpass) || die("无法联接服务器");
 mysql_select_db($dbname) || die("数据库不存在");
 

@@ -4,6 +4,13 @@ include_once("config.php");
 global $when;
 $when=date("Ymd");
 
+/*
+ * 	更新统计信息函数
+ *
+ * 描述
+ * 	输入被更新的昵称及其发表的信息
+ * 	更新数据库中的统计信息
+ */
 function update_stat($nick, $message)
 {
 	global $dbname, $when;
@@ -60,6 +67,13 @@ function get_stat(){
 	return $rtn;
 }
 
+/*
+ *	获取指定昵称的统计信息（报表）函数
+ *
+ * 说明
+ * 	输入昵称，返回该昵称截止到目前
+ * 	当天的聊天统计信息
+ */
 function get_my_stat($nick){
 	global $dbname, $when;
 	$sql = "select * from `${dbname}`.`stat` where `date`='${when}' and `nick`='${nick}'";
