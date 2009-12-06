@@ -11,9 +11,10 @@ class bot{
 	function hello(&$irc,&$data){
 		$irc->message(SMARTIRC_TYPE_CHANNEL,
 		       		$data->channel, 
-				$data->nick.":我说你叫什么叫，没看见我在挖矿吗？
-					有问题对我说“帮助”。
-					记住，是对我说，一个字都不许差，否则……");
+				$data->nick.":叫什么叫，烦死了。没看见我在挖矿吗？有问题大叫“帮助”就可以了。");
+		$irc->message(SMARTIRC_TYPE_CHANNEL,
+		       		$data->channel, "/action 话说现在的活人怎么比机器人还无聊，囧orz.");
+
 	}
 
 	// 接收指令退出
@@ -23,72 +24,104 @@ class bot{
 		}
 	}
 	function help(&$irc, &$data){
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "开发中，不要着急！");
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "聊天记录，请围观 http://www.gooth.cn/ircbot/log/ ！");
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "输入“地名NN小时天气如何”可以查询天气。如“成都72小时天气如何”");
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "直接输入“排行榜”可以查询今天聊天室的统计信息。即：“排行榜”");
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "对我输入“排行榜”可以查询自己统计信息，如“at:排行榜”。");
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "有任何建议或意见，请联系Athurg Gooth <athurg#gooth.cn>！");
+		$help = array(
+			"机器人功能开发中，不要着急！",
+			"-----------------------------华丽的分割线-----------------------------",
+			"要查阅聊天记录，请围观 http://www.gooth.cn/ircbot/log/ ！",
+			"输入“今（明、后）天地名天气”可以查询天气。如“今天成都天气”",
+			"输入“排行榜”可以查询今天聊天室的统计信息。即：“排行榜”",
+			"对着机器人输入“排行榜”可以查询你自己今天的统计信息，如“at:排行榜”。",
+			"-----------------------------华丽的分割线-----------------------------",
+			"有想法？找Athurg <athurg#gooth.cn>！"
+		);
+		foreach($help as $msg){
+			$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, $msg);
+		}
 	}
 
 	// 记录房间说话日志并更新统计信息
 	function log(&$irc, &$data){
-		// 记录日志
 		$filename = "log/".date("Y-m-d").".log";
+
+		//新创建的文件，在行首加入文件说明
 		if(!is_file($filename)){
-			file_put_contents($filename, "本日志记录了irc://irc.oftc.net/#arch-cn房间的公共聊天记录，如有任何问题，请联系athurg#gooth.cn\n");
+			file_put_contents($filename, 
+					"本日志记录着irc://irc.oftc.net/#arch-cn房间的公共聊天记录，
+					如您有任何问题，烦请联系Athurg<athurg#gooth.cn>\n"
+				);
 		}
-		file_put_contents($filename, date("[Y-m-d H:i:s]<").$data->nick.">:".$data->message."\n", FILE_APPEND);
+		file_put_contents(
+				$filename, 
+				date("[Y-m-d H:i:s]<").$data->nick.">:".$data->message."\n", 
+				FILE_APPEND
+			);
 
 		// 更新统计信息
 		update_stat($data->nick, $data->message);
 	}
 
+	// 查询统计状态
 	function stat(&$irc, &$data){
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, get_stat());
-	}
-	function mystat(&$irc, &$data){
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, get_my_stat($data->nick));
+		// 根据消息长度，判断是查询类型
+		//	如果长度等于6，即只有“排行榜”三个字，则查询系统统计信息；
+		//	否则查询发起人的个人统计信息
+		$msg = (strlen($data->message) < 6) ? get_stat() : get_my_stat($data->nick);
+		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, $msg);
 	}
 
-	// 天气查询
+	// 查询天气
 	function weather(&$irc, &$data){
-		$str = $data->message;
-		$str = preg_replace("/^at:*\s*([^0-9]*)([247][482])小时天气如何$/", "\${1} \${2}", $str);
-		$str = explode(" ", $str);
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, weather_check($str[0], $str[1]));
+		preg_match("/^(今|明|后)天(.+)天气.*/",$data->message, $rst);
+		$irc->message(SMARTIRC_TYPE_CHANNEL, 
+				$data->channel, 
+				weather_check($rst[1], $rst[2]));
 	}
 }
-
+// 机器人登陆位置设置
 $host = "irc.oftc.net";
 $port = 6667;
 $nick = "at";
-$chan = "#arch-cn";
+$nick_desc = "Athurg's Bot";
+$chan = array(
+		"#arch-cn",
+		"#steamedfish",
+	);
+
+$lockfile = "/tmp/ircbot.lock";
+
+/* 注册功能 */
+$funcs = array(
+		//array("匹配正则表达式", "回调方法名"),
+		array("^${nick}$","hello"),
+		array("^你妈喊你回去吃饭$","quit"),
+		array("^${nick}:*\s*帮助","help"),
+		array("排行榜$","stat"),
+		array("^(今|明|后)天.+天气","weather"),
+		array(".*","log")
+	);
+
+
+// 初始化对象
 $bot = &new bot();
 $irc = &new Net_SmartIRC();
 $irc->setUseSockets(TRUE);
-// registerActionhandler(SMARTIRC_TYPE_CHANNEL, '正则表达式', 调用的类, 调用的方法)
-$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, "^${nick}$", $bot, 'hello');
-//注册退出指令
-$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^你妈喊你回去吃饭$', $bot, 'quit');
-// 机器人使用帮助功能
-$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, "^${nick}:? *帮助", $bot, 'help');
-// 注册记录日志记录、状态统计功能
-$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '.*', $bot, 'log');
-// 注册统计信息查询功能
-$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, '^排行榜$', $bot, 'stat');
-$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, "^${nick}:*\s*排行榜$", $bot, 'mystat');
-// 天气预报功能
-$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL, "^at:*\s*[^0-9]+[247][482]小时天气如何$", $bot, 'weather');
 
+// 注册所需的监听功能
+foreach($funcs as $func){
+	$irc->registerActionhandler(SMARTIRC_TYPE_CHANNEL,$func[0], $bot, $func[1]);
+}
+
+// 联接服务器登陆机器人，然后进入房间
 $irc->connect($host,$port);
-// 登录机器人
-// login(昵称, 机器人说明)
-// 更多参数参考文档
-$irc->login($nick, "Athurg Gooth's bot");
-// 加入聊天室
-// join(要登录的房间数组)
-$irc->join(array($chan));
-$irc->listen();	//进入监听的死循环
+$irc->login($nick, $nick_desc);
+$irc->join($chan);
+
+// 成功登陆后建立锁定文件，用于WEB界面查询登陆状态
+// 然后开始监听
+touch($lockfile);
+$irc->listen();
+
+// 注销后删除用于查询登陆状态的锁定文件
 $irc->disconnect();
+unlink($lockfile);
 ?>
