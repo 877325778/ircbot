@@ -24,16 +24,15 @@ function weather_check($city, $when){
 
 	$city_code = city_code_check($city);
 	switch($when){
-		case "明天":
+		case "明":
 			$hours=48;
 			break;
-		case "后天":
+		case "后":
 			$hours=72;
 			break;
 		default:$hours=24;
 	}
 
-	$hours = $when;
 	$result = file_get_contents("http://wap.weather.com.cn/wap/${city_code}/h${hours}.shtml");
 	$result = preg_replace("/\r\n/","",$result);
 	$result = preg_replace("/.*结束-->/","",$result);

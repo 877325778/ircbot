@@ -23,6 +23,13 @@ class bot{
 			$irc->quit("Mumm call me to have meal...");
 		}
 	}
+	
+	// 打赏
+	function money(&$irc, &$data) {
+		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "谢".$data->nick."公公打赏！");
+		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, $data->nick."公公吉祥万福:！");
+	}
+
 	function help(&$irc, &$data){
 		$help = array(
 			"机器人功能开发中，不要着急！",
@@ -41,7 +48,7 @@ class bot{
 
 	// 记录房间说话日志并更新统计信息
 	function log(&$irc, &$data){
-		$filename = "log/".date("Y-m-d").".log";
+		$filename = "log/".substr($data->channel,1).date("-Ymd").".log";
 
 		//新创建的文件，在行首加入文件说明
 		if(!is_file($filename)){
@@ -65,7 +72,7 @@ class bot{
 		// 根据消息长度，判断是查询类型
 		//	如果长度等于6，即只有“排行榜”三个字，则查询系统统计信息；
 		//	否则查询发起人的个人统计信息
-		$msg = (strlen($data->message) < 6) ? get_stat() : get_my_stat($data->nick);
+		$msg = (mb_strlen($data->message,"UTF-8") > 3) ? get_my_stat($data->nick) : get_stat();
 		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, $msg);
 	}
 
@@ -74,7 +81,7 @@ class bot{
 		preg_match("/^(今|明|后)天(.+)天气.*/",$data->message, $rst);
 		$irc->message(SMARTIRC_TYPE_CHANNEL, 
 				$data->channel, 
-				weather_check($rst[1], $rst[2]));
+				weather_check($rst[2], $rst[1]));
 	}
 }
 // 机器人登陆位置设置
@@ -89,9 +96,13 @@ $chan = array(
 
 $lockfile = "/tmp/ircbot.lock";
 
+// 避免多个机器人同时上线
+if(is_file($lockfile))	die("机器人已经在线了");
+
 /* 注册功能 */
 $funcs = array(
 		//array("匹配正则表达式", "回调方法名"),
+		array("^${nick}:*\s*￥[1-9][0-9]*$", "money"),
 		array("^${nick}$","hello"),
 		array("^你妈喊你回去吃饭$","quit"),
 		array("^${nick}:*\s*帮助","help"),

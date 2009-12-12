@@ -15,11 +15,16 @@ $when=date("Ymd");
 function update_stat($nick, $message)
 {
 	global $dbname, $when;
+
+	// 我们不统计机器人
+	$bot=array("at","ZFish","psycho");
+	if(in_array($nick,$bot))	return;
+
 	$keywords = array(
-			"happy"	=> array('哈','嘿','嘻',':)'),
-			"jiong"	=> array('囧','无语'),
+			"happy"	=> array('哈','嘿','嘻',':)',':-)',':P',':D','^_^','^-^','-_-'),
+			"jiong"	=> array('囧','无语','...','。。。','……'),
 			"yumen"	=> array('郁闷',':('),
-			"sad"	=> array('唉','555','哭泣'),
+			"sad"	=> array('唉','呜呜','555','哭泣','T_T'),
 		);
 
 	// 统计特殊状态
@@ -38,7 +43,7 @@ function update_stat($nick, $message)
 		}
 
 	}
-	$stat['words']=strlen($message);
+	$stat['words']=mb_strlen($message,"UTF-8");
 
 	// 先查询数据库中是否已有记录
 	$sql = "select * from `$dbname`.`stat` 
@@ -108,7 +113,7 @@ function get_stat(){
 		$rst = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 		$stat[$column]=$rst['nick'];
 	}
-	$rtn = "今天${stat[words]}最水，${stat[length]}肺货量最大，${stat[sentences]}最喜欢说话。${stat[happy]}最开心了，${stat[jiong]}无语得专到囧肚子里，${stat[yumen]}很是郁闷，${stat[sad]}估计说了什么非常不开心的事儿让大家都很开心。";
+	$rtn = "今天${stat[words]}最水，${stat[length]}肺活量最大，${stat[sentences]}最喜欢说话。${stat[happy]}最开心了，${stat[jiong]}无语到钻囧肚子里了，${stat[yumen]}很是郁闷，${stat[sad]}的伤心事真多，搞得大家开心得不行";
 	return $rtn;
 }
 
@@ -126,7 +131,7 @@ function get_my_stat($nick){
 	if(!$rst){
 		return "妈呀，你是鬼啊！";
 	}else{
-		return "${nick}老弟，你娃今天在${rst[sentences]}次发言中共说了${rst[words]}个字，最多一次吐完了${rst[length]}个唾沫，平均每次".$rst[words]/$rst[sentences]."个！另外，你今天高兴了${rst[happy]}次，囧了${rst[jiong]}次，郁闷了${rst[yumen]}次，伤心了${rst[sad]}次！";
+		return "${nick}老弟，你今儿${rst[sentences]}次发言中絮叨了${rst[words]}个字，最多一次吐了${rst[length]}个，平均每句".$rst[words]/$rst[sentences]."个唾沫！另外，你今天高兴${rst[happy]}次，囧了${rst[jiong]}次，郁闷了${rst[yumen]}次，伤心了${rst[sad]}次！";
 	}
 }
 ?>
