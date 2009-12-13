@@ -1,10 +1,5 @@
 <?php
 include_once("config.php");
-global $when;
-
-date_default_timezone_set("Asia/Chongqing");
-$when=date("Ymd");
-
 /*
  * 	更新统计信息函数
  *
@@ -14,7 +9,8 @@ $when=date("Ymd");
  */
 function update_stat($nick, $message)
 {
-	global $dbname, $when;
+	global $dbname;
+	$when=mktime(0,0,0);
 
 	// 我们不统计机器人
 	$bot=array("at","ZFish","psycho");
@@ -47,7 +43,7 @@ function update_stat($nick, $message)
 
 	// 先查询数据库中是否已有记录
 	$sql = "select * from `$dbname`.`stat` 
-		where `nick`='${nick}' and `date`='${when}'";
+		where `nick`='${nick}' and `when`='${when}'";
 	$rst = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 
 	// 如数据库已有记录则更新，否则添加
@@ -59,23 +55,23 @@ function update_stat($nick, $message)
 		($stat['words'] < $rst['length']) || $rst['length'] = $stat['words'];
 		$rst['sentences']++;
 
-		$sql .= "set `words`='${rst['words']}', 
-				`length`='${rst['length']}', 
-				`sentences`='${rst['sentences']}' ";
+		$sql .= "set `words`='{$rst['words']}', 
+				`length`='{$rst['length']}', 
+				`sentences`='{$rst['sentences']}' ";
 		// 更新特殊状态
 		foreach($keywords as $keyword => $strs){
 			$rst[$keyword] += $stat[$keyword];
-			$sql .= ",`${keyword}`='${rst[${keyword}]}' ";
+			$sql .= ",`${keyword}`='{$rst[${keyword}]}' ";
 		}
 
 		// 更新数据库
-		$sql .= " where `nick`='${rst[nick]}' and `date`='${rst[date]}'";
+		$sql .= " where `nick`='{$rst[nick]}' and `when`='{$rst[when]}'";
 		mysql_query($sql);
 	}else{
 		// 如数据库中无记录，直接插入即可
 		$sql = "insert `${dbname}`.`stat` 
 				(
-					`date`, 
+					`when`, 
 					`nick`, 
 					`words`, 
 					`length`, 
@@ -87,13 +83,13 @@ function update_stat($nick, $message)
 				values(
 					'${when}',
 					'${nick}',
-					'${stat[words]}',
-					'${stat[words]}',
+					'{$stat[words]}',
+					'{$stat[words]}',
 					'1',
-					'${stat[happy]}',
-					'${stat[jiong]}',
-					'${stat[yumen]}',
-					'${stat[sad]}')";
+					'{$stat[happy]}',
+					'{$stat[jiong]}',
+					'{$stat[yumen]}',
+					'{$stat[sad]}')";
 		mysql_query($sql);
 	}
 }
@@ -105,15 +101,18 @@ function update_stat($nick, $message)
  * 	无需任何参数，直接返回统计信息
  */
 function get_stat(){
-	global $dbname, $when;
-	$columns = array("words", "length", "sentences","happy","jiong","yumen","sad");
+	global $dbname;
+
+	$when = mktime(0,0,0);
+	$columns = array('words', 'length', 'sentences','happy','jiong','yumen','sad');
 	foreach($columns as $column){
-		$sql = "select `nick` from `${dbname}`.`stat`
-				order by `$column` DESC limit 1";
+		$sql = "select `nick` from `{$dbname}`.`stat`
+				where `when`='{$when}'
+				order by `{$column}` DESC limit 1";
 		$rst = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 		$stat[$column]=$rst['nick'];
 	}
-	$rtn = "今天${stat[words]}最水，${stat[length]}肺活量最大，${stat[sentences]}最喜欢说话。${stat[happy]}最开心了，${stat[jiong]}无语到钻囧肚子里了，${stat[yumen]}很是郁闷，${stat[sad]}的伤心事真多，搞得大家开心得不行";
+	$rtn = "今天{$stat['words']}最水，{$stat['length']}肺活量最大，{$stat['sentences']}最喜欢说话。{$stat['happy']}最开心了，{$stat['jiong']}无语到钻囧肚子里了，{$stat['yumen']}很是郁闷，{$stat['sad']}的伤心事真多，搞得大家开心得不行";
 	return $rtn;
 }
 
@@ -124,14 +123,15 @@ function get_stat(){
  * 	输入昵称，返回该昵称截止到目前
  * 	当天的聊天统计信息
  */
-function get_my_stat($nick){
-	global $dbname, $when;
-	$sql = "select * from `${dbname}`.`stat` where `date`='${when}' and `nick`='${nick}'";
+function get_my_stat($nickname){
+	global $dbname;
+	$when = mktime(0,0,0);
+	$sql = "select * from `{$dbname}`.`stat` where `when`='{$when}' and `nick`='{$nickname}'";
 	$rst = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 	if(!$rst){
 		return "妈呀，你是鬼啊！";
 	}else{
-		return "${nick}老弟，你今儿${rst[sentences]}次发言中絮叨了${rst[words]}个字，最多一次吐了${rst[length]}个，平均每句".$rst[words]/$rst[sentences]."个唾沫！另外，你今天高兴${rst[happy]}次，囧了${rst[jiong]}次，郁闷了${rst[yumen]}次，伤心了${rst[sad]}次！";
+		return "{$nickname}老弟，你今儿{$rst['sentences']}次发言中絮叨了{$rst['words']}个字，最多一次吐了{$rst['length']}个，平均每句".$rst['words']/$rst['sentences']."个唾沫！另外，你今天高兴{$rst['happy']}次，囧了{$rst['jiong']}次，郁闷了{$rst['yumen']}次，伤心了{$rst['sad']}次！";
 	}
 }
 ?>

@@ -31,7 +31,6 @@ $login_info = array(
 	'muxueqz' => "AD:卖虚拟主机啦！卖VPS啦！卖muxueqz啦！",
 	'ghosTM55' => "妈呀，鬼来了！",
 	'athurg' => "皇上驾到……",
-	'AT' => "老子横空出世了！"
 	);
 
 // 设置默认时区

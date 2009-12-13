@@ -1,8 +1,8 @@
 <?php
 //包含SmartIRC模块
 include_once("Net_SmartIRC/SmartIRC.php");
-include_once("weather.php");
-include_once("stat.php");
+include_once("weather.php");	//天气预报功能
+include_once("stat.php");	//状态查询功能
 
 // 用于防止本脚本重复运行，造成重复多个机器人
 $lockfile = "/tmp/ircbot.lock";
@@ -52,15 +52,15 @@ unlink($lockfile);
 // 机器人类
 class bot{
 	function sayhello(&$irc,&$data){
-		global $login_info;
+		global $login_info, $nick;
 
-		$nick = strtolower($data->nick);
+		$nickname = strtolower($data->nick);
 		// 来人了就给他打个招呼
 		// 可以在配置文件中设置$hello_str，以对特定的人打招呼
-		if ( array_key_exists($nick, $login_info) ){
-			$irc->message(SMARTIRC_TYPE_ACTION, $data->channel, $login_info["$nick"]);
+		if (($nickname!=$nick) && array_key_exists($nickname, $login_info) ){
+			$irc->message(SMARTIRC_TYPE_ACTION, $data->channel, $login_info["$nickname"]);
 		}else{
-			$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "${nick}:hi，等你老久了");
+			$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "{$nickname}:hi，等你老久了");
 		}
 
 		//TODO:
@@ -78,7 +78,7 @@ class bot{
 	// 接收指令退出
 	function quit(&$irc, &$data) {
 
-		if($data->nick=="athurg"){
+		if(strtolower($data->nick)=="athurg"){
 			$irc->quit("Mumm call me to have meal...");
 		}
 	}
@@ -90,13 +90,15 @@ class bot{
 	}
 
 	function help(&$irc, &$data){
+		global $nick;
+
 		$help = array(
 			"机器人功能开发中，不要着急！",
 			"-----------------------------华丽的分割线-----------------------------",
 			"要查阅聊天记录，请围观 http://www.gooth.cn/ircbot/log/ ！",
 			"输入“今（明、后）天地名天气”可以查询天气。如“今天成都天气”",
 			"输入“排行榜”可以查询今天聊天室的统计信息。即：“排行榜”",
-			"对着机器人输入“排行榜”可以查询你自己今天的统计信息，如“at:排行榜”。",
+			"对机器人输入“排行榜”可以查询你自己今天的统计信息，如“{$nick}:排行榜”。",
 			"-----------------------------华丽的分割线-----------------------------",
 			"有想法？找Athurg <athurg#gooth.cn>！"
 		);
