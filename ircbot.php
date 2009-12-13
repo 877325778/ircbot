@@ -3,6 +3,7 @@
 include_once("Net_SmartIRC/SmartIRC.php");
 include_once("weather.php");	//天气预报功能
 include_once("stat.php");	//状态查询功能
+include_once("message.php");	//留言功能
 
 // 用于防止本脚本重复运行，造成重复多个机器人
 $lockfile = "/tmp/ircbot.lock";
@@ -16,6 +17,7 @@ $funcs = array(
 		array(SMARTIRC_TYPE_JOIN,	".*",	"sayhello"),	// 来的时候说你好！
 		array(SMARTIRC_TYPE_QUIT | SMARTIRC_TYPE_PART,	".*",	"saybye"),	//离开的时候说再见！
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*￥[1-9][0-9]*$",	"money"),	// 给点钱就是大爷
+		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*告诉[^\s]*\s.*$",	"leave_mesg"),
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}$",			"hello"),
 		array(SMARTIRC_TYPE_CHANNEL,	"^退出$",			"quit"),
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*帮助",		"help"),
@@ -63,12 +65,16 @@ class bot{
 			$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "{$nickname}:hi，等你老久了");
 		}
 
-		//TODO:
-		//	然后就查阅他的收件箱里是否有留言
+		// 查阅收件箱里的未读留言并发送
+		$msgs = read_message($data->nick);
+		if($msgs){
+			foreach($msgs as $msg){
+				$irc->message(SMARTIRC_TYPE_QUERY, $data->nick,$msg);
+			}
+		}
 	}
 
 	function saybye(&$irc,&$data){
-		// 来人了就给他打个招呼
 		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "我的妈啊，".$data->nick."终于走了");
 
 		//TODO:
@@ -88,6 +94,17 @@ class bot{
 		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "谢".$data->nick."公公打赏！");
 		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, $data->nick."公公吉祥万福:！");
 	}
+	
+	// 留言
+	function leave_mesg(&$irc, &$data) {
+		global $nick;
+		$pregstr="/^${nick}:*\s*告诉([^\s]*)\s*(.*)$/";
+		echo $pregstr;
+		preg_match($pregstr, $data->message, $str);
+		print_r($str);
+		send_message($data->nick,$str[1], $str[2]);
+
+	}
 
 	function help(&$irc, &$data){
 		global $nick;
@@ -98,6 +115,7 @@ class bot{
 			"要查阅聊天记录，请围观 http://www.gooth.cn/ircbot/log/ ！",
 			"输入“今（明、后）天地名天气”可以查询天气。如“今天成都天气”",
 			"输入“排行榜”可以查询今天聊天室的统计信息。即：“排行榜”",
+			"对机器人输入“告诉XX 消息”（注意昵称后有个空格）可以给XX留言。如：“{$nick}:告诉贾君鹏 你妈妈喊你回去吃饭”，这样对方在下次登录的时候，机器人会以私聊的方式将你的留言的信息告诉他。",
 			"对机器人输入“排行榜”可以查询你自己今天的统计信息，如“{$nick}:排行榜”。",
 			"-----------------------------华丽的分割线-----------------------------",
 			"有想法？找Athurg <athurg#gooth.cn>！"
