@@ -56,10 +56,12 @@ class bot{
 	function sayhello(&$irc,&$data){
 		global $login_info, $nick;
 
-		$nickname = strtolower($data->nick);
+		if($data->nick==$nick)	return;
+		else	$nickname = strtolower($data->nick);
+
 		// 来人了就给他打个招呼
-		// 可以在配置文件中设置$hello_str，以对特定的人打招呼
-		if (($nickname!=$nick) && array_key_exists($nickname, $login_info) ){
+		// 可以在配置文件中设置$login_info，以对特定的人打招呼
+		if ( array_key_exists($nickname, $login_info) ){
 			$irc->message(SMARTIRC_TYPE_ACTION, $data->channel, $login_info["$nickname"]);
 		}else{
 			$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "{$nickname}:hi，等你老久了");
@@ -99,10 +101,9 @@ class bot{
 	function leave_mesg(&$irc, &$data) {
 		global $nick;
 		$pregstr="/^${nick}:*\s*告诉([^\s]*)\s*(.*)$/";
-		echo $pregstr;
 		preg_match($pregstr, $data->message, $str);
-		print_r($str);
 		send_message($data->nick,$str[1], $str[2]);
+		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, $data->nick.":留言已记录！{$str[1]}下次到聊天室的时候就会收到了。");
 
 	}
 
