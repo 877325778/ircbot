@@ -39,11 +39,10 @@ $irc->setChannelSyncing(TRUE);	//启动房间同步，自动重重登录需要
 foreach($funcs as $func)
 	$irc->registerActionhandler($func[0], $func[1], $bot, $func[2]);
 
-$irc->registerTimehandler(3000, $bot,"loop");
+$irc->registerTimehandler(3000, $bot, "loop");
 // 联接服务器登陆机器人，然后进入房间
-$irc->connect($host,$port);
+$irc->connect($host, $port);
 $irc->login($nick, $nick_desc);
-echo $irc->nick;
 $irc->join($chan);
 
 // 成功登陆后建立锁定文件，用于WEB界面查询登陆状态
@@ -67,8 +66,6 @@ class bot{
 		// 可以在配置文件中设置$login_info，以对特定的人打招呼
 		if ( array_key_exists($nickname, $login_info) ){
 			$irc->message(SMARTIRC_TYPE_ACTION, $data->channel, $login_info["$nickname"]);
-		}else{
-			$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "{$nickname}:hi，等你老久了");
 		}
 
 		// 查阅收件箱里的未读留言并发送
@@ -100,11 +97,8 @@ class bot{
 		global $chan;
 
 		// 被踢了自动上线
-		foreach($chan as $channel){
-			if($irc->isJoined($channel)){
-				$irc->join($chan);
-			}
-		}
+		$irc->join($chan);
+
 	}
 
 	// 打赏
