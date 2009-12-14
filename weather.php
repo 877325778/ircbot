@@ -15,7 +15,7 @@ function connect_dbhost(){
 
 function city_code_check($cityname){
 	global $dbname;
-	$sql = "select `citycode` from `$dbname`.`citycode` where `cityname`='$cityname'";
+	$sql = "select `citycode` from `$dbname`.`citycode` where `cityname`='{$cityname}'";
 	$result = mysql_fetch_array(mysql_query($sql), MYSQL_NUM);
 	return $result[0];
 }
@@ -34,11 +34,9 @@ function weather_check($city, $when){
 	}
 
 	$result = file_get_contents("http://wap.weather.com.cn/wap/${city_code}/h${hours}.shtml");
-	$result = preg_replace("/\r\n/","",$result);
-	$result = preg_replace("/.*结束-->/","",$result);
-	$result = preg_replace("/<br><a.*/","",$result);
-	$result = preg_replace("/<[^>]*>/", "", $result);
-	$result = preg_replace("/今日(.*)发布.*小时预报(.*)星期.*\[(农历[^]]*)\]/", "$3($2)$1消息，未来${hours}小时内：", $result);
+	$result = preg_replace("/.*结束-->\r\n\r\n/s",'',$result);//去头
+	$result = preg_replace("/<br>\r\n<a.*/s",'',$result);//去尾
+	$result = preg_replace("/<[^>]*>|\r\n/", '', $result);//去HTML代码
 	return $result;
 }
 
