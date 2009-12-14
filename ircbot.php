@@ -22,7 +22,7 @@ $funcs = array(
 		array(SMARTIRC_TYPE_CHANNEL,	"^退出$",			"quit"),
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*帮助",		"help"),
 		array(SMARTIRC_TYPE_CHANNEL,	"排行榜$",			"stat"),
-		array(SMARTIRC_TYPE_CHANNEL,	"^(今|明|后)天.+天气",		"weather"),
+		array(SMARTIRC_TYPE_CHANNEL,	"/^[今|明|后]天.+天气/u",		"weather"),
 		array(SMARTIRC_TYPE_CHANNEL,	".*",				"log")
 	);
 
@@ -153,10 +153,8 @@ class bot{
 
 	// 查询天气
 	function weather(&$irc, &$data){
-		preg_match("/^(今|明|后)天(.+)天气.*/",$data->message, $rst);
-		$irc->message(SMARTIRC_TYPE_CHANNEL, 
-				$data->channel, 
-				weather_check($rst[2], $rst[1]));
+		preg_match("/^([今明后])天(.+)天气.*/u",$data->message, $rst);
+		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, weather_check($rst[2], $rst[1]));
 	}
 }
 ?>
