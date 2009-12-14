@@ -31,15 +31,19 @@ $funcs = array(
 $bot = &new bot();
 $irc = &new Net_SmartIRC();
 
-$irc->setUseSockets(TRUE);
+$irc->setUseSockets(TRUE);	//优先使用Sockets
+$irc->setAutoReconnect(TRUE);	//掉线自动重登录
+$irc->setChannelSyncing(TRUE);	//启动房间同步，自动重重登录需要
 
 // 注册所需的监听功能
 foreach($funcs as $func)
 	$irc->registerActionhandler($func[0], $func[1], $bot, $func[2]);
 
+$irc->registerTimehandler(3000, $bot,"loop");
 // 联接服务器登陆机器人，然后进入房间
 $irc->connect($host,$port);
 $irc->login($nick, $nick_desc);
+echo $irc->nick;
 $irc->join($chan);
 
 // 成功登陆后建立锁定文件，用于WEB界面查询登陆状态
@@ -77,7 +81,7 @@ class bot{
 	}
 
 	function saybye(&$irc,&$data){
-		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "我的妈啊，".$data->nick."终于走了");
+		//$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "我的妈啊，".$data->nick."终于走了");
 
 		//TODO:
 		//	然后就查阅他的收件箱里是否有留言
@@ -90,7 +94,19 @@ class bot{
 			$irc->quit("Mumm call me to have meal...");
 		}
 	}
-	
+
+	// 定时重复的功能，可以防止掉线、被踢等
+	function loop(&$irc) {
+		global $chan;
+
+		// 被踢了自动上线
+		foreach($chan as $channel){
+			if($irc->isJoined($channel)){
+				$irc->join($chan);
+			}
+		}
+	}
+
 	// 打赏
 	function money(&$irc, &$data) {
 		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, "谢".$data->nick."公公打赏！");
