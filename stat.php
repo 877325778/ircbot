@@ -44,7 +44,7 @@ function update_stat($nick, $message)
 	// 先查询数据库中是否已有记录
 	$sql = "select * from `$dbname`.`stat` 
 		where `nick`='${nick}' and `when`='${when}'";
-	$rst = mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
+	$rst = @mysql_fetch_array(mysql_query($sql), MYSQL_ASSOC);
 
 	// 如数据库已有记录则更新，否则添加
 	if ($rst){
