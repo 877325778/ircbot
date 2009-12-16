@@ -4,6 +4,7 @@ include_once("Net_SmartIRC/SmartIRC.php");
 include_once("weather.php");	//天气预报功能
 include_once("stat.php");	//状态查询功能
 include_once("message.php");	//留言功能
+include_once("misc.php");	//其他功能
 
 // 用于防止本脚本重复运行，造成重复多个机器人
 $lockfile = "/tmp/ircbot.lock";
@@ -15,6 +16,7 @@ if(is_file($lockfile))	die("机器人已经在线了");
 $funcs = array(
 		//array("监听的消息类型","匹配正则表达式字串", "回调方法名"),
 		array(SMARTIRC_TYPE_JOIN,	".*",	"sayhello"),	// 来的时候说你好！
+		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*查\s.*",	"dict"),	// 查字典
 		array(SMARTIRC_TYPE_QUIT | SMARTIRC_TYPE_PART,	".*",	"saybye"),	//离开的时候说再见！
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*￥[1-9][0-9]*$",	"money"),	// 给点钱就是大爷
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*告诉[^\s]*\s.*$",	"leave_mesg"),
@@ -39,7 +41,7 @@ $irc->setChannelSyncing(TRUE);	//启动房间同步，自动重重登录需要
 foreach($funcs as $func)
 	$irc->registerActionhandler($func[0], $func[1], $bot, $func[2]);
 
-$irc->registerTimehandler(3000, $bot, "loop");
+$irc->registerTimehandler(10000, $bot, "loop");
 // 联接服务器登陆机器人，然后进入房间
 $irc->connect($host, $port);
 $irc->login($nick, $nick_desc);
@@ -97,7 +99,16 @@ class bot{
 		global $chan;
 
 		// 被踢了自动上线
-		$irc->join($chan);
+		//$irc->join($chan);
+
+	}
+
+	// 查字典功能
+	function dict(&$irc, &$data) {
+		global $nick;
+		$pattern = "/^{$nick}:*\s*查\s(.*)/";
+		$word = preg_replace($pattern, "$1", $data->message);
+		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, $data->nick.": ".check_dict($word));
 
 	}
 
@@ -125,6 +136,7 @@ class bot{
 			"http://www.gooth.cn/wordpress/?tag=ircbot",
 			"--------------",
 			"查阅聊天记录，围观 http://www.gooth.cn/ircbot/log/ ！",
+			"对机器人输入“查 单词”即可查单词（中英互译），比如：“{$nick}:查 china”",
 			"输入“今（明、后）天地名天气”可以查询天气。如如：”今天成都天气“",
 			"对机器人输入“告诉XX 消息”（注意昵称后有个空格）可以给XX留言。如：“{$nick}:告诉贾君鹏 你妈妈喊你回去吃饭”，这样对方在下次登录的时候，机器人会以私聊的方式将你的留言的信息告诉他。",
 			"对机器人输入“排行榜”可以查询你自己今天的统计信息，如“{$nick}:排行榜”。",

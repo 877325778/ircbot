@@ -20,7 +20,6 @@ $nick = 'AT';
 $nick_desc = "Athurg's Bot";
 $chan = array(
 		'#arch-cn',
-		'#steamedfish',
 		'#gooth',
 	);
 
