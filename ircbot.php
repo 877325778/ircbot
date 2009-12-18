@@ -175,7 +175,7 @@ class bot{
 
 	// 查询天气
 	function weather(&$irc, &$data){
-		preg_match("/^([今明后])天(.+)天气.*/u",$data->message, $rst);
+		preg_match("/^([今明后])天(.+)天气.*/u", $data->message, $rst);
 		$irc->message(SMARTIRC_TYPE_CHANNEL, $data->channel, weather_check($rst[2], $rst[1]));
 	}
 }

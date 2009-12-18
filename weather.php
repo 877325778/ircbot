@@ -7,12 +7,6 @@
  */
 include_once("config.php");
 
-function connect_dbhost(){
-	global $dbhost, $dbuser, $dbpass, $dbname;
-	mysql_connect($dbhost, $dbuser, $dbpass) || die("无法联接服务器");
-	mysql_select_db($dbname) || die("数据库不存在");
-}
-
 function city_code_check($cityname){
 	global $dbname;
 	$sql = "select `citycode` from `$dbname`.`citycode` where `cityname`='{$cityname}'";
@@ -23,6 +17,7 @@ function city_code_check($cityname){
 function weather_check($city, $when){
 
 	$city_code = city_code_check($city);
+	if(!$city_code)	return "有这个城市么？";
 	switch($when){
 		case "明":
 			$hours=48;
