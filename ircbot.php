@@ -21,9 +21,9 @@ $funcs = array(
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*￥[1-9][0-9]*$",	"money"),	// 给点钱就是大爷
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*告诉[^\s]*\s.*$",	"leave_mesg"),
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}$",			"hello"),
-		array(SMARTIRC_TYPE_CHANNEL,	"^退出$",			"quit"),
+		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}退下$",			"quit"),
 		array(SMARTIRC_TYPE_CHANNEL,	"^${nick}:*\s*帮助",		"help"),
-		array(SMARTIRC_TYPE_CHANNEL,	"排行榜$",			"stat"),
+		array(SMARTIRC_TYPE_CHANNEL,	"^排行榜$",			"stat"),
 		array(SMARTIRC_TYPE_CHANNEL,	"/^[今|明|后]天.+天气/u",		"weather"),
 		array(SMARTIRC_TYPE_CHANNEL,	".*",				"log")
 	);
