@@ -17,7 +17,7 @@ function city_code_check($cityname){
 function weather_check($city, $when){
 
 	$city_code = city_code_check($city);
-	if(!$city_code)	return "有这个城市么？";
+	if(!$city_code)	return "有{$city}({$city_code})这个城市么？";
 	switch($when){
 		case "明":
 			$hours=48;
