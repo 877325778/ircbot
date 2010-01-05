@@ -21,9 +21,11 @@ function check_dict($word){
 		'muxueqz'=>'那个卖服务器的！',
 		'athurg'=>'找我老大有事儿？',
 		'steamedfish'=>'传说中用油炸的蒸鱼……',
+		'fireflyoo'=>'鱼曰：火飞蛋蛋',
 		'ghostm55'=>'鬼门关左护卫！',
 		'zfish'=>'机器人！！',
 		'at'=>'万能的神，伟大的真主。',
+		'somebot'=>'万能的神，伟大的真主。',
 		'huntxu'=>'机器人附身了！',
 		//''=>'',
 	);
