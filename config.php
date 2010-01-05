@@ -16,7 +16,7 @@ $dbname = 'ircbot';
 // 机器人登陆位置设置
 $host = 'irc.oftc.net';
 $port = 6667;
-$nick = 'AT';
+$nick = 'somebot';
 $nick_desc = "Athurg's Bot";
 $chan = array(
 		'#arch-cn',
