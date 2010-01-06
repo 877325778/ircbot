@@ -43,7 +43,8 @@ function check_dict($word){
 		$content=preg_replace('/<([^>]+?)>/s', '',$content);
 		$content=preg_replace('/\s/s', '', $content);
 		$content=str_replace('&nbsp;', '', $content);
-		$content.="      也可能意指".$special_mean;
+		if($special_mean)
+			$content.="      也可能意指".$special_mean;
 	}
 	return $content;
 }
